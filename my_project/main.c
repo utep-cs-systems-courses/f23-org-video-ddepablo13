@@ -4,8 +4,8 @@
 #include "led.h"
 #include "switches.h"
 #include "buzzer.h"
-#include "../lcdLib/lcdutils.h"
-#include "../lcdLib/lcddraw.h"
+#include "lcdutils.h"
+#include "lcddraw.h"
 
 #define LED BIT6/* note that bit zero req'd for display */
 short redrawScreen = 1;
