@@ -17,7 +17,7 @@
 char blue = 31, green = 0, red = 31;
 unsigned char step = 0;
 
-static char 
+static char
 switch_update_interrupt_sense()
 {
   char p2val = P2IN;
@@ -27,9 +27,9 @@ switch_update_interrupt_sense()
   return p2val;
 }
 
-void 
+void
 switch_init()			/* setup switch */
-{  
+{
   P2REN |= SWITCHES;		/* enables resistors for switches */
   P2IE |= SWITCHES;		/* enable interrupts from switches */
   P2OUT |= SWITCHES;		/* pull-ups for switches */
@@ -62,17 +62,17 @@ draw_ball(int col, int row, unsigned short color)
 void
 screen_update_ball()
 {
-  for (char axis = 0; axis < 2; axis ++) 
+  for (char axis = 0; axis < 2; axis ++)
     if (drawPos[axis] != controlPos[axis]) /* position changed? */
       goto redraw;
   return;			/* nothing to do */
  redraw:
   draw_ball(drawPos[0], drawPos[1], COLOR_BLUE); /* erase */
-  for (char axis = 0; axis < 2; axis ++) 
+  for (char axis = 0; axis < 2; axis ++)
     drawPos[axis] = controlPos[axis];
   draw_ball(drawPos[0], drawPos[1], COLOR_WHITE); /* draw */
 }
-  
+
 
 short redrawScreen = 1;
 u_int controlFontColor = COLOR_GREEN;
@@ -83,7 +83,7 @@ void wdt_c_handler()
 
   secCount ++;
   if (secCount >= 25) {		/* 10/sec */
-   
+
     {				/* move ball */
       short oldCol = controlPos[0];
       short newCol = oldCol + colVelocity;
@@ -107,21 +107,21 @@ void wdt_c_handler()
     redrawScreen = 1;
   }
 }
-  
+
 void update_shape();
 
 void main()
 {
-  
+
   P1DIR |= LED;		/**< Green led on when CPU on */
   P1OUT |= LED;
   configureClocks();
   lcd_init();
   switch_init();
-  
+
   enableWDTInterrupts();      /**< enable periodic interrupt */
   or_sr(0x8);	              /**< GIE (enable interrupts) */
-  
+
   clearScreen(COLOR_BLUE);
   while (1) {			/* forever */
     if (redrawScreen) {
@@ -139,7 +139,7 @@ screen_update_hourglass()
 {
   static unsigned char row = screenHeight / 2, col = screenWidth / 2;
   static char lastStep = 0;
-  
+
   if (step == 0 || (lastStep > step)) {
     clearScreen(COLOR_BLUE);
     lastStep = 0;
@@ -148,25 +148,25 @@ screen_update_hourglass()
       int startCol = col - lastStep;
       int endCol = col + lastStep;
       int width = 1 + endCol - startCol;
-      
+
       // a color in this BGR encoding is BBBB BGGG GGGR RRRR
       unsigned int color = (blue << 11) | (green << 5) | red;
-      
+
       fillRectangle(startCol, row+lastStep, width, 1, color);
       fillRectangle(startCol, row-lastStep, width, 1, color);
     }
   }
-}  
+}
 
 
-    
+
 void
 update_shape()
 {
   screen_update_ball();
   screen_update_hourglass();
 }
-   
+
 
 
 void

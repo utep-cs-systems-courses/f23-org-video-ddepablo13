@@ -25,7 +25,7 @@ extern const unsigned int font_11x16[95][11];
 #define ORIENTATION_HORIZONTAL_ROTATED	3
 
 /** Default Orientation */
-#ifndef ORIENTATION		
+#ifndef ORIENTATION
 #define ORIENTATION ORIENTATION_VERTICAL_ROTATED
 #endif
 
@@ -41,7 +41,7 @@ extern const unsigned int font_11x16[95][11];
 void lcd_init();
 
 /** Set area to draw to
- *  
+ *
  *  \param colStart Start column of the area
  *  \param rowStart Start row of the area
  *  \param colEnd End column of the area
