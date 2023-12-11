@@ -1,25 +1,32 @@
-# makefile configuration
-COMMON_OBJECTS  =
-CPU             = msp430g2553
-CFLAGS          = -mmcu=${CPU} -Os -I../h
-LDFLAGS		= -L../lib -L/opt/ti/msp430_gcc/include
+# makfile configuration
+CPU             	= msp430g2553
+CFLAGS          	= -mmcu=${CPU} -Os -I../h
+LDFLAGS		        = -L../lib -L/opt/ti/msp430_gcc/include/
 
-#switch the compiler (for the internal make rules)
+# switch the compiler (for the internal make rules)
 CC              = msp430-elf-gcc
 AS              = msp430-elf-gcc -mmcu=${CPU} -c
 
-all: run.elf
+all: main.elf
 
-run.elf: ${COMMON_OBJECTS} wdt_handler.o p1_interrupt_handler.o main.o buzzer.o switches.o stateMachines.o led.o ../lib/libTimer.a
+# additional rules for files
+main.elf: main.o wdt_handler.o input.o switches.o
 	${CC} ${CFLAGS} ${LDFLAGS} -o $@ $^ -lTimer -lLcd
 
-#wdInterruptHandler.o: stateMachines.h
-switches.o: switches.h stateMachine.s
-stateMachines.o: stateMachine.s stateMachines.h
-led.o: led_s.s led.h
-buzzer.o: buzzer.h
+main.o: main.c input.h switches.h
+	${CC} ${CFLAGS} -c main.c
 
-load: run.elf
-	msp430loader.sh run.elf
+input.o: input.c input.h
+	${CC} ${CFLAGS} -c input.c
+
+switches.o: switches.c switches.h
+	${CC} ${CFLAGS} -c switches.c
+
+wdt_handler.o: wdt_handler.s
+	${AS} wdt_handler.s
+
+load: main.elf
+	msp430loader.sh $^
+
 clean:
-	rm -f *.o *.elf *# *~
+	rm -f *.o *.elf

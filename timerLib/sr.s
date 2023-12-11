@@ -5,13 +5,15 @@
 	;;  routines to access sr
 
 	.global set_sr
-set_sr:	nop
+set_sr: nop
 	mov r12, r2
 	nop
 	ret
 
 	.global get_sr
-get_sr:	mov r2, r12
+get_sr:	nop
+	mov r2, r12
+	nop
 	ret
 
 	.global or_sr
@@ -19,7 +21,7 @@ or_sr:	nop
 	bis r12, r2
 	nop
 	ret
-	
+
 	.global and_sr
 and_sr:	nop
 	and r12, r2

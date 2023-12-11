@@ -1,57 +1,86 @@
-//Alternate LEDs from Off, Green, and Red
 #include <msp430.h>
 #include "libTimer.h"
-#include "led.h"
-#include "switches.h"
-#include "buzzer.h"
-#include "../lcdLib/lcdutils.h"
-#include "../lcdLib/lcddraw.h"
+#include "lcdutils.h"
+#include "lcddraw.h"
+#include "input.h"
 
-#define LED BIT6/* note that bit zero req'd for display */
-short redrawScreen = 1;
-char state1=1;
+// Define game dimensions and paddle size
+#define GAME_WIDTH screenWidth
+#define GAME_HEIGHT screenHeight
+#define PADDLE_WIDTH 10
+#define PADDLE_HEIGHT 30
+#define BALL_SIZE 5
 
-void wdt_c_handler(){
-  static int secCount = 0;
-  secCount++;
+// Game state variables
+int ballX, ballY;  // Ball position
+int ballVelocityX, ballVelocityY;  // Ball velocity
+int paddle1Y, paddle2Y;  // Paddle positions
 
-  if (secCount == 20) {
-    redrawScreen=1;
-    secCount=0;
-    switch(state1){
-     case 1: move_shape_Left(10);  state1++; break;
-     case 2: move_shape_Down(10);  state1++; break;
-     case 3: move_shape_Right(10); state1++; break;
-     case 4: move_shape_Up(10);    state1++; break;
-     default: state1=1; break;
-     }
-  }
+void initializeGame() {
+    configureClocks();
+    lcd_init();
+    clearScreen(COLOR_BLACK);
+
+    // Initialize ball position and velocity
+    ballX = GAME_WIDTH / 2;
+    ballY = GAME_HEIGHT / 2;
+    ballVelocityX = 2;
+    ballVelocityY = 2;
+
+    // Initialize paddles
+    paddle1Y = (GAME_HEIGHT - PADDLE_HEIGHT) / 2;
+    paddle2Y = (GAME_HEIGHT - PADDLE_HEIGHT) / 2;
 }
 
-void main(void) {
-  configureClocks();	   // Setup master oscillator, CPU & peripheral clocks
-  switch_init();
-  lcd_init();
-  led_init();
-  buzzer_init();
+void updateGame() {
+    ballX += ballVelocityX;
+    ballY += ballVelocityY;
 
-  enableWDTInterrupts();   // Enable periodic interrupt
-  or_sr(0x8);		   // Enable interrupts
-
-  P1DIR |= LED;            // Green led on when CPU on
-  P1OUT |= LED;
-
-  while(1){
-    if(redrawScreen){
-      redrawScreen=0;
-      and_sr(~8);          // Disable interrupts
-      clearScreen(COLOR_WHITE);
-      my_shape(my_color);
-      or_sr(8);            // Enable interrupts
+    // Collision with walls
+    if (ballY <= 0 || ballY + BALL_SIZE >= GAME_HEIGHT) {
+        ballVelocityY *= -1;
     }
 
-    P1OUT &= ~LED;         // led off
-    or_sr(0x10);           // CPU OFF
-    P1OUT |= LED;
-  }
+    // TODO: Add collision logic with paddles and game over conditions
+}
+
+void drawGame() {
+    clearScreen(COLOR_BLACK);
+
+    // Draw ball
+    fillRectangle(ballX, ballY, BALL_SIZE, BALL_SIZE, COLOR_WHITE);
+
+    // Draw paddles
+    fillRectangle(5, paddle1Y, PADDLE_WIDTH, PADDLE_HEIGHT, COLOR_WHITE);
+    fillRectangle(GAME_WIDTH - 5 - PADDLE_WIDTH, paddle2Y, PADDLE_WIDTH, PADDLE_HEIGHT, COLOR_WHITE);
+}
+
+volatile char redrawScreen = 1;
+
+void wdt_c_handler() {
+    if (redrawScreen) {
+        updateGame();
+        updatePaddles();
+        drawGame();
+        redrawScreen = 0;
+    }
+}
+
+void main() {
+    initializeGame();
+    initializeInput();
+
+    enableWDTInterrupts();
+    or_sr(0x18);  // CPU off, GIE on
+
+    while (1) {
+        // Game logic updated in WDT interrupt
+    }
+}
+
+// Watchdog Timer interrupt service routine
+interrupt(WDT_VECTOR) WDT() {
+    updateGame();
+    updatePaddles();
+    drawGame();
 }
