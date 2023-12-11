@@ -1,4 +1,4 @@
-# makfile configuration
+# makefile configuration
 COMMON_OBJECTS  =
 CPU             = msp430g2553
 CFLAGS          = -mmcu=${CPU} -Os -I../h

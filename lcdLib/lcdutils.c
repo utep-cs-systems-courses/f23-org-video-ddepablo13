@@ -158,4 +158,3 @@ void lcd_init()
     lcd_writeData(0xC8);
   }
 }
-
