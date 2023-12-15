@@ -1,5 +1,5 @@
 # ---------------------
-# makfile configuration
+# makefile configuration
 CPU             	= msp430g2553
 CFLAGS          	= -mmcu=${CPU} -Os -I../h
 LDFLAGS		= -L../lib -L/opt/ti/msp430_gcc/include/
@@ -11,8 +11,8 @@ AS              = msp430-elf-gcc -mmcu=${CPU} -c
 all:pong.elf
 
 #additional rules for files
-pong.elf: ${COMMON_OBJECTS} pong.o wdt_handler.o buzzer.o
-	${CC} ${CFLAGS} ${LDFLAGS} -o $@ $^ -lTimer -lLcd
+pong.elf: ${COMMON_OBJECTS} pong.o wdt_handler.o
+	${CC} ${CFLAGS} ${LDFLAGS} -o $@ $^ -lTimer -lLcd -lBuzzer
 
 load: pong.elf
 	msp430loader.sh $^

@@ -1,10 +1,8 @@
 #include <msp430.h>
-#include <libTimer.h>
-#include <lcdutils.h>
-#include <lcddraw.h>
-#include "buzzer.h"
-#include "lcddraw.h"
+#include "libTimer.h"
 #include "lcdutils.h"
+#include "lcddraw.h"
+#include "buzzer.h"
 
 #define LED BIT6 /* note that bit zero req'd for display */
 
@@ -27,10 +25,10 @@ const int LOSE_TONE = 2048;
 const int QUIET_TONE = 8;
 const int BUZZ_LEN = 10;
 
-const int BALL_POS_INIT[] = {10, 30};
+const int BALL_POS_INIT[] = {30, 10};
 const int BALL_DIR_INIT[] = {1, 1};
 
-int DISPLAY_DIMS[] = {160, 128}; // Swapped dimensions for horizontal layout
+int DISPLAY_DIMS[] = {128, 160};
 
 // buzzer attrs
 int buzz_remaining = 0;
@@ -41,23 +39,24 @@ char t_score = 0;
 char b_score = 0;
 
 // asset dimensions
-int paddle_dims[] = {5, 30};
+int paddle_dims[] = {30, 5};
 int ball_dims[] = {3, 3};
 
 // horiz, vert, old horiz, old vert
 // old vals used for erasing previous pixels.
-int l_paddle_pos[] = {10, 48, 10, 48}; // Left paddle position
-int r_paddle_pos[] = {145, 48, 145, 48}; // Right paddle position
+int t_paddle_pos[] = {98, 10, 98, 10};
+int b_paddle_pos[] = {0, 145, 0, 145};
 int ball_pos[] = {
   BALL_POS_INIT[0], BALL_POS_INIT[1], BALL_POS_INIT[0], BALL_POS_INIT[1]
 };
 
+// do we need to render anything?
 char redrawScreen = 0;
 int switches = 0;
 
 // asset directions (e.g. for paddles, -1 for left, 1 for right)
-int t_paddle_dir[] = {0, -2};
-int b_paddle_dir[] = {0, 2};
+int t_paddle_dir[] = {-2, 0};
+int b_paddle_dir[] = {2, 0};
 int ball_dir[] = {1, 1};
 
 static char sw0_update_interrupt_sense() {
@@ -296,26 +295,27 @@ void main() {
   // draw ball
   drawRect(ball_pos, ball_dims, OBJ_CLR);
 
-  while (l_score < 5 && r_score < 5) {
-      if (redrawScreen) {
-        redrawScreen = 0;
-        update_shape();
-      }
-      P1OUT &= ~LED;	/* led off */
-      or_sr(0x10);	/**< CPU OFF */
-      P1OUT |= LED;	/* led on */
-    }
+  while (t_score < 5 && b_score < 5) {
+    if (redrawScreen) {
+      redrawScreen = 0;
 
-    // Game over logic
-    clearScreen(BG_CLR);
-    if (l_score > r_score) {
-      drawString5x7(0, 0, "Left player won!", OBJ_CLR, BG_CLR);
-    } else {
-      drawString5x7(0, 0, "Right player won!", OBJ_CLR, BG_CLR);
+      update_shape();
     }
     P1OUT &= ~LED;	/* led off */
     or_sr(0x10);	/**< CPU OFF */
+    P1OUT |= LED;	/* led on */
   }
+
+  // game over
+  clearScreen(BG_CLR);
+  if (t_score > b_score) {
+    drawString5x7(0, 0, "Top player won!", OBJ_CLR, BG_CLR);
+  } else {
+    drawString5x7(0, 0, "Bottom player won!", OBJ_CLR, BG_CLR);
+  }
+  P1OUT &= ~LED;	/* led off */
+  or_sr(0x10);	/**< CPU OFF */
+}
 
 void sw0_interrupt_handler() {
   // save toggled switches and flip sensitivity
